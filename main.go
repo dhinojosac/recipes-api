@@ -1,3 +1,24 @@
+// @title           Recipes API
+// @description     his is a sample recipes API. You can find out more about the API at
+// https://github.com/PacktPublishing/Building-Distributed-Applications-in-Gin.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @schemes		 http
+// @host      localhost:8080
+// @BasePath  /api/v1
+// @version         1.0
+
+// @consumes	   application/json
+// @produces	   application/json
+
+// @securityDefinitions.basic  BasicAuth
 package main
 
 import (
@@ -10,6 +31,11 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/rs/xid"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "recipes-api/docs"
 )
 
 type Recipe struct {
@@ -30,6 +56,13 @@ func init() {
 	_ = json.Unmarshal(file, &recipes)
 }
 
+// @Summary Create a new recipe
+// @Description Create a new recipe
+// @Accept  json
+// @Produce  json
+// @Param recipe body Recipe true "Recipe"
+// @Success 200 {object} Recipe
+// @Router /recipes [post]
 func NewRecipeHandler(c *gin.Context) {
 	var recipe Recipe
 	if err := c.ShouldBindJSON(&recipe); err != nil {
@@ -43,10 +76,23 @@ func NewRecipeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, recipe)
 }
 
+// @Summary List recipes
+// @Description List all recipes
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Recipe
+// @Router /recipes [get]
 func ListRecipesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, recipes)
 }
 
+// @Summary Update a recipe
+// @Description Update a recipe
+// @Accept  json
+// @Produce  json
+// @Param recipe body Recipe true "Recipe"
+// @Success 200 {object} Recipe
+// @Router /recipes/{id} [put]
 func UpdateRecipeHandler(c *gin.Context) {
 	id := c.Param("id")
 	var recipe Recipe
@@ -77,5 +123,7 @@ func main() {
 	router.POST("/recipes", NewRecipeHandler)
 	router.GET("/recipes", ListRecipesHandler)
 	router.PUT("/recipes/:id", UpdateRecipeHandler)
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run()
 }
