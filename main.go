@@ -22,107 +22,42 @@
 package main
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	"context"
 	"log"
-	"net/http"
-	"time"
+	"os"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/rs/xid"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "recipes-api/docs"
+	"recipes-api/handlers"
 )
 
-type Recipe struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Tags         []string  `json:"tags"`
-	Ingredients  []string  `json:"ingredients"`
-	Instructions []string  `json:"instructions"`
-	PublishedAt  time.Time `json:"published_at"`
-}
-
-var recipes []Recipe
+var recipesHandler *handlers.RecipesHandler
 
 func init() {
-	log.Println("Loading recipes...")
-	recipes = make([]Recipe, 0)
-	file, _ := ioutil.ReadFile("recipes.json")
-	_ = json.Unmarshal(file, &recipes)
-}
-
-// @Summary Create a new recipe
-// @Description Create a new recipe
-// @Accept  json
-// @Produce  json
-// @Param recipe body Recipe true "Recipe"
-// @Success 200 {object} Recipe
-// @Router /recipes [post]
-func NewRecipeHandler(c *gin.Context) {
-	var recipe Recipe
-	if err := c.ShouldBindJSON(&recipe); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error()})
-		return
+	ctx := context.Background()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_URI")))
+	if err = client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		log.Fatal(err)
 	}
-	recipe.ID = xid.New().String()
-	recipe.PublishedAt = time.Now()
-	recipes = append(recipes, recipe)
-	c.JSON(http.StatusOK, recipe)
-}
-
-// @Summary List recipes
-// @Description List all recipes
-// @Accept  json
-// @Produce  json
-// @Success 200 {array} Recipe
-// @Router /recipes [get]
-func ListRecipesHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, recipes)
-}
-
-// @Summary Update a recipe
-// @Description Update a recipe
-// @Accept  json
-// @Produce  json
-// @Param recipe body Recipe true "Recipe"
-// @Success 200 {object} Recipe
-// @Router /recipes/{id} [put]
-func UpdateRecipeHandler(c *gin.Context) {
-	id := c.Param("id")
-	var recipe Recipe
-	if err := c.ShouldBindJSON(&recipe); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error()})
-		return
-	}
-	index := -1
-	for i := 0; i < len(recipes); i++ {
-		if recipes[i].ID == id {
-			index = i
-		}
-	}
-	if index == -1 {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Recipe not found"})
-		return
-	}
-	recipe.ID = id
-	recipes[index] = recipe
-	c.JSON(http.StatusOK, recipe)
+	log.Println("Connected to MongoDB")
+	collection := client.Database(os.Getenv(
+		"MONGO_DATABASE")).Collection("recipes")
+	recipesHandler = handlers.NewRecipesHandler(ctx,
+		collection)
 }
 
 func main() {
-
 	router := gin.Default()
-	router.POST("/recipes", NewRecipeHandler)
-	router.GET("/recipes", ListRecipesHandler)
-	router.PUT("/recipes/:id", UpdateRecipeHandler)
+	router.POST("/recipes", recipesHandler.NewRecipeHandler)
+	router.GET("/recipes", recipesHandler.ListRecipesHandler)
+	router.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run()
