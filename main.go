@@ -12,7 +12,7 @@
 
 // @schemes		 http
 // @host      localhost:8080
-// @BasePath  /api/v1
+// @BasePath  /
 // @version         1.0
 
 // @consumes	   application/json
