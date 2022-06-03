@@ -13,3 +13,15 @@ mongo-stop:
 
 mongo-remove:
 	docker rm -f mongodb || true
+
+redis-run:
+	docker run -d -v $(pwd)/docker/redis/conf:/usr/local/etc/redis \
+	--name redis \
+	-p 6378:6379 \
+	redis:6.0
+
+redis-stop:
+	docker stop redis
+
+redis-remove:
+	docker rm -f redis || true
