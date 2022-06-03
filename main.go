@@ -35,11 +35,12 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	_ "recipes-api/docs"
-	"recipes-api/handlers"
+	_ "github.com/dhinojosac/recipes-api/docs"
+	"github.com/dhinojosac/recipes-api/handlers"
 )
 
 var recipesHandler *handlers.RecipesHandler
+var authHandler *handlers.AuthHandler
 
 func init() {
 	ctx := context.Background()
@@ -66,16 +67,33 @@ func init() {
 	log.Println("Connected to Redis")
 
 	recipesHandler = handlers.NewRecipesHandler(ctx, collection, redisClient)
+
+	collectionUsers := client.Database(os.Getenv("MONGO_DATABASE")).Collection("users")
+	authHandler = handlers.NewAuthHandler(ctx, collectionUsers)
+
 }
 
 func main() {
 	router := gin.Default()
-	router.POST("/recipes", recipesHandler.NewRecipeHandler)
-	router.GET("/recipes", recipesHandler.ListRecipesHandler)
-	router.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
-	router.GET("/recipes/:id", recipesHandler.GetRecipeByIDHandler)
-	router.DELETE("/recipes/:id", recipesHandler.DeleteRecipeHandler)
 
+	// Signin endpoint
+	router.POST("/signin", authHandler.SignInHandler)
+	router.POST("/refresh", authHandler.RefreshHandler)
+
+	router.GET("/recipes", recipesHandler.ListRecipesHandler)
+	router.GET("/recipes/:id", recipesHandler.GetRecipeByIDHandler)
+
+	authorized := router.Group("/")
+	authorized.Use(authHandler.AuthMiddleware())
+	{
+
+		authorized.POST("/recipes", recipesHandler.NewRecipeHandler)
+		authorized.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
+		authorized.DELETE("/recipes/:id", recipesHandler.DeleteRecipeHandler)
+	}
+
+	// Swagger documentation endpoint
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	router.Run()
 }

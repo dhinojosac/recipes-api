@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"recipes-api/models"
 	"time"
+
+	"github.com/dhinojosac/recipes-api/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"

@@ -25,3 +25,7 @@ redis-stop:
 
 redis-remove:
 	docker rm -f redis || true
+
+
+add-user-db:
+	MONGO_URI="mongodb://admin:password@localhost:27017/test?authSource=admin" MONGO_DATABASE=demo go run populate/main.go
