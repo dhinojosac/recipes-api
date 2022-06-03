@@ -25,6 +25,3 @@ Check in Redis if key `recipes` exists:
 docker exec -it [CONTAINER-ID] redis-cli
 EXISTS recipes
 ```
-
-
-

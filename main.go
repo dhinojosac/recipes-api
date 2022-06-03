@@ -73,6 +73,8 @@ func main() {
 	router.POST("/recipes", recipesHandler.NewRecipeHandler)
 	router.GET("/recipes", recipesHandler.ListRecipesHandler)
 	router.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
+	router.GET("/recipes/:id", recipesHandler.GetRecipeByIDHandler)
+	router.DELETE("/recipes/:id", recipesHandler.DeleteRecipeHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run()
