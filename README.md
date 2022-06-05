@@ -38,6 +38,7 @@ make redis-run
     docker exec -it aa72c2e7b304 bash
     mongo -u <your username> -p <your password>
     show dbs
+    use demo
     show collections
     db.[your-collection].find()
     ```	

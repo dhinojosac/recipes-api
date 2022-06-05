@@ -1,5 +1,8 @@
 .PHONY: mongo-run
 
+api-run:
+	REDIs_URI=localhost:6378 JWT_SECRET=eUbP9shywUygMx7u MONGO_URI="mongodb://admin:password@localhost:27017/test?authSource=admin" MONGO_DATABASE=demo go run *.go
+
 mongo-run:
 	docker run -d --name mongodb \
 	-v $(pwd)/database/data:/data/db \
@@ -26,6 +29,13 @@ redis-stop:
 redis-remove:
 	docker rm -f redis || true
 
+remove-all: mongo-remove redis-remove
+	docker volume prune -f
+
+run-db-all: mongo-run redis-run
 
 add-user-db:
-	MONGO_URI="mongodb://admin:password@localhost:27017/test?authSource=admin" MONGO_DATABASE=demo go run populate/main.go
+	MONGO_URI="mongodb://admin:password@localhost:27017/test?authSource=admin" MONGO_DATABASE=demo go run populate/users/main.go
+
+add-recipes-db:
+	MONGO_URI="mongodb://admin:password@localhost:27017/test?authSource=admin" MONGO_DATABASE=demo go run populate/recipes/main.go
