@@ -32,4 +32,5 @@ func main() {
 			"password": string(h.Sum([]byte(password))),
 		})
 	}
+	log.Println("Inserted users: ", len(users))
 }
