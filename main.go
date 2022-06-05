@@ -86,7 +86,6 @@ func main() {
 	router.POST("/refresh", authHandler.RefreshHandler)
 
 	router.GET("/recipes", recipesHandler.ListRecipesHandler)
-	router.GET("/recipes/:id", recipesHandler.GetRecipeByIDHandler)
 
 	authorized := router.Group("/")
 	authorized.Use(authHandler.AuthMiddleware())
@@ -95,6 +94,7 @@ func main() {
 		authorized.POST("/recipes", recipesHandler.NewRecipeHandler)
 		authorized.PUT("/recipes/:id", recipesHandler.UpdateRecipeHandler)
 		authorized.DELETE("/recipes/:id", recipesHandler.DeleteRecipeHandler)
+		authorized.GET("/recipes/:id", recipesHandler.GetRecipeByIDHandler)
 	}
 
 	// Swagger documentation endpoint
