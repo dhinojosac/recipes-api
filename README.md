@@ -13,6 +13,12 @@ make redis-run
 
 ## Tips
 
+- Run main 
+
+    ```sh
+    JWT_SECRET=eUbP9shywUygMx7u MONGO_URI="mongodb://admin:password@localhost:27017/test?authSource=admin" MONGO_DATABASE=demo go run *.go
+    ```
+
 - Import `recipe.json` to **mongoDB** using _mongoimport_ command:
 
     ```sh

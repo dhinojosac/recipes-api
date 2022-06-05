@@ -26,6 +26,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-contrib/sessions"
+	redisStore "github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -51,8 +53,7 @@ func init() {
 		log.Fatal(err)
 	}
 	log.Println("Connected to MongoDB")
-	collection := client.Database(os.Getenv(
-		"MONGO_DATABASE")).Collection("recipes")
+	collection := client.Database(os.Getenv("MONGO_DATABASE")).Collection("recipes")
 
 	// Redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -76,8 +77,12 @@ func init() {
 func main() {
 	router := gin.Default()
 
+	store, _ := redisStore.NewStore(10, "tcp", "localhost:6378", "", []byte("secret"))
+	router.Use(sessions.Sessions("recipes_api", store))
+
 	// Signin endpoint
 	router.POST("/signin", authHandler.SignInHandler)
+	router.POST("/signout", authHandler.SignOutHandler)
 	router.POST("/refresh", authHandler.RefreshHandler)
 
 	router.GET("/recipes", recipesHandler.ListRecipesHandler)
